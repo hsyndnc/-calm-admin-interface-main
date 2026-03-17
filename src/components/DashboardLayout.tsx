@@ -3,8 +3,14 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Bell } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const DashboardLayout = () => {
+  const { user } = useAuth();
+  const initials = user?.fullName
+    ? user.fullName.split(" ").map((n) => n[0]).join("").toUpperCase()
+    : "?";
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
@@ -23,12 +29,12 @@ const DashboardLayout = () => {
               <div className="flex items-center gap-3">
                 <Avatar className="w-8 h-8">
                   <AvatarFallback className="bg-primary text-primary-foreground text-xs font-medium">
-                    JD
+                    {initials}
                   </AvatarFallback>
                 </Avatar>
                 <div className="hidden sm:block">
-                  <p className="text-sm font-medium text-foreground leading-none">John Doe</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">Administrator</p>
+                  <p className="text-sm font-medium text-foreground leading-none">{user?.fullName}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{user?.email}</p>
                 </div>
               </div>
             </div>

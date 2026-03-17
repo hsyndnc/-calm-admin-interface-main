@@ -11,8 +11,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useProducts } from "@/hooks/use-products";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Products = () => {
+  const { user } = useAuth();
+  const isAdmin = user?.roles?.includes("Admin") ?? false;
   const [search, setSearch] = useState("");
   const { data: products = [], isLoading, isError } = useProducts();
 
@@ -30,10 +33,12 @@ const Products = () => {
             {isLoading ? "Loading..." : `${products.length} products listed`}
           </p>
         </div>
-        <Button className="gap-2">
-          <Plus className="w-4 h-4" />
-          Add Product
-        </Button>
+        {isAdmin && (
+          <Button className="gap-2">
+            <Plus className="w-4 h-4" />
+            Add Product
+          </Button>
+        )}
       </div>
 
       <div className="bg-card rounded-xl shadow-card border border-border/50 overflow-hidden">
@@ -44,7 +49,7 @@ const Products = () => {
               <TableHead className="text-xs uppercase tracking-wider text-muted-foreground font-medium">Category</TableHead>
               <TableHead className="text-xs uppercase tracking-wider text-muted-foreground font-medium">Price</TableHead>
               <TableHead className="text-xs uppercase tracking-wider text-muted-foreground font-medium">Status</TableHead>
-              <TableHead className="text-xs uppercase tracking-wider text-muted-foreground font-medium text-right">Actions</TableHead>
+              {isAdmin && <TableHead className="text-xs uppercase tracking-wider text-muted-foreground font-medium text-right">Actions</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -89,16 +94,18 @@ const Products = () => {
                       {product.unitsInStock > 0 ? `In Stock (${product.unitsInStock})` : "Out of Stock"}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-1">
-                      <button className="p-2 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors">
-                        <Pencil className="w-4 h-4" />
-                      </button>
-                      <button className="p-2 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </TableCell>
+                  {isAdmin && (
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        <button className="p-2 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors">
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                        <button className="p-2 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </TableCell>
+                  )}
                 </TableRow>
               ))
             )}

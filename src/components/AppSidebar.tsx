@@ -1,6 +1,7 @@
-import { LayoutDashboard, Package, Users, LogOut } from "lucide-react";
+import { LayoutDashboard, Package, Users, ShoppingCart, LogOut } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   Sidebar,
   SidebarContent,
@@ -14,16 +15,19 @@ import {
 } from "@/components/ui/sidebar";
 
 const navItems = [
-  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-  { title: "Products", url: "/dashboard/products", icon: Package },
-  { title: "Customers", url: "/dashboard/customers", icon: Users },
+  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, roles: ["Admin", "User"] },
+  { title: "Products", url: "/dashboard/products", icon: Package, roles: ["Admin", "User"] },
+  { title: "Customers", url: "/dashboard/customers", icon: Users, roles: ["Admin"] },
+  { title: "Orders", url: "/dashboard/orders", icon: ShoppingCart, roles: ["Admin"] },
 ];
 
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
-  const location = useLocation();
-  const navigate = useNavigate();
+const navigate = useNavigate();
+  const { logout, user } = useAuth();
+  const userRoles = user?.roles || ["User"];
+  const filteredNavItems = navItems.filter((item) => item.roles.some((r) => userRoles.includes(r)));
 
   return (
     <Sidebar collapsible="icon">
@@ -42,7 +46,7 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {navItems.map((item) => (
+              {filteredNavItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink
@@ -66,11 +70,11 @@ export function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
-              onClick={() => navigate("/")}
+              onClick={() => { logout(); navigate("/"); }}
               className="hover:bg-sidebar-accent hover:text-destructive rounded-lg transition-colors"
             >
               <LogOut className="w-5 h-5 mr-3 shrink-0" />
-              {!collapsed && <span>Sign Out</span>}
+              {!collapsed && <span>Log Out</span>}
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

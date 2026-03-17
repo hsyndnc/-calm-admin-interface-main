@@ -4,9 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Lock, Mail } from "lucide-react";
+import { Lock, Mail, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import apiClient from "@/lib/api-client";
+import axios from "axios";
+
+const authApi = axios.create({
+  baseURL: import.meta.env.VITE_Auth_BASE_URL,
+  headers: { "Content-Type": "application/json" },
+});
 
 const Login = () => {
   const navigate = useNavigate();
@@ -15,14 +20,15 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
     try {
-      const { data } = await apiClient.post("auth/login", { email, password });
-      login(data.token);
+      const { data } = await authApi.post("auth/login", { email, password });
+      login(data.accessToken, data.fullName, data.email, data.roles);
       navigate("/dashboard");
     } catch {
       setError("Geçersiz e-posta veya şifre.");
@@ -81,12 +87,19 @@ const Login = () => {
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   id="password"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10 h-11 bg-secondary/50 border-border/50 focus:bg-card"
+                  className="pl-10 pr-10 h-11 bg-secondary/50 border-border/50 focus:bg-card"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
             </div>
 
