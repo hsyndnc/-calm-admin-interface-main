@@ -9,12 +9,22 @@ const apiClient = axios.create({
   },
 });
 
+// Request interceptor — attach Bearer token
+apiClient.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+
 // Response interceptor for error handling
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Log error or handle globally (e.g., toast notification)
     console.error("API Error:", error.response?.data || error.message);
+    if (error.response?.status === 401) {
+      localStorage.removeItem("token");
+      window.location.href = "/";
+    }
     return Promise.reject(error);
   }
 );

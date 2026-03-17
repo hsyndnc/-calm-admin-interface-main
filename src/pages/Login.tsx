@@ -5,15 +5,30 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Lock, Mail } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import apiClient from "@/lib/api-client";
 
 const Login = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    navigate("/dashboard");
+    setError("");
+    setLoading(true);
+    try {
+      const { data } = await apiClient.post("auth/login", { email, password });
+      login(data.token);
+      navigate("/dashboard");
+    } catch {
+      setError("Geçersiz e-posta veya şifre.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -87,8 +102,11 @@ const Login = () => {
               </button>
             </div>
 
-            <Button type="submit" className="w-full h-11 text-sm font-medium">
-              Sign In
+            {error && (
+              <p className="text-sm text-destructive text-center">{error}</p>
+            )}
+            <Button type="submit" disabled={loading} className="w-full h-11 text-sm font-medium">
+              {loading ? "Giriş yapılıyor..." : "Sign In"}
             </Button>
           </form>
         </div>
