@@ -9,7 +9,12 @@ interface User {
 interface AuthContextType {
   token: string | null;
   user: User | null;
-  login: (token: string, fullName: string, email: string, roles: string[]) => void;
+  login: (
+    token: string,
+    fullName: string,
+    email: string,
+    roles: string[],
+  ) => void;
   logout: () => void;
   isAuthenticated: boolean;
 }
@@ -17,15 +22,20 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [token, setToken] = useState<string | null>(
-    () => localStorage.getItem("token")
+  const [token, setToken] = useState<string | null>(() =>
+    localStorage.getItem("token"),
   );
   const [user, setUser] = useState<User | null>(() => {
     const stored = localStorage.getItem("user");
     return stored ? JSON.parse(stored) : null;
   });
 
-  const login = (newToken: string, fullName: string, email: string, roles: string[]) => {
+  const login = (
+    newToken: string,
+    fullName: string,
+    email: string,
+    roles: string[],
+  ) => {
     const userData = { fullName, email, roles };
     localStorage.setItem("token", newToken);
     localStorage.setItem("user", JSON.stringify(userData));
@@ -41,7 +51,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ token, user, login, logout, isAuthenticated: !!token }}>
+    <AuthContext.Provider
+      value={{ token, user, login, logout, isAuthenticated: !!token }}
+    >
       {children}
     </AuthContext.Provider>
   );

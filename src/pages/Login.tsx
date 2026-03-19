@@ -6,12 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Lock, Mail, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import axios from "axios";
-
-const authApi = axios.create({
-  baseURL: import.meta.env.VITE_Auth_BASE_URL,
-  headers: { "Content-Type": "application/json" },
-});
+import apiClient from "@/lib/api-client";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -27,7 +22,7 @@ const Login = () => {
     setError("");
     setLoading(true);
     try {
-      const { data } = await authApi.post("auth/login", { email, password });
+      const { data } = await apiClient.post("auth/login", { email, password });
       login(data.accessToken, data.fullName, data.email, data.roles);
       navigate("/dashboard");
     } catch {
@@ -63,7 +58,10 @@ const Login = () => {
         <div className="bg-card rounded-2xl shadow-float border border-border/50 p-8">
           <form onSubmit={handleLogin} className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium text-foreground">
+              <Label
+                htmlFor="email"
+                className="text-sm font-medium text-foreground"
+              >
                 Email address
               </Label>
               <div className="relative">
@@ -80,7 +78,10 @@ const Login = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm font-medium text-foreground">
+              <Label
+                htmlFor="password"
+                className="text-sm font-medium text-foreground"
+              >
                 Password
               </Label>
               <div className="relative">
@@ -98,7 +99,11 @@ const Login = () => {
                   onClick={() => setShowPassword((prev) => !prev)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
                 </button>
               </div>
             </div>
@@ -106,11 +111,17 @@ const Login = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <Checkbox id="remember" />
-                <Label htmlFor="remember" className="text-sm text-muted-foreground cursor-pointer">
+                <Label
+                  htmlFor="remember"
+                  className="text-sm text-muted-foreground cursor-pointer"
+                >
                   Remember me
                 </Label>
               </div>
-              <button type="button" className="text-sm text-primary hover:underline font-medium">
+              <button
+                type="button"
+                className="text-sm text-primary hover:underline font-medium"
+              >
                 Forgot password?
               </button>
             </div>
@@ -118,7 +129,11 @@ const Login = () => {
             {error && (
               <p className="text-sm text-destructive text-center">{error}</p>
             )}
-            <Button type="submit" disabled={loading} className="w-full h-11 text-sm font-medium">
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full h-11 text-sm font-medium"
+            >
               {loading ? "Giriş yapılıyor..." : "Sign In"}
             </Button>
           </form>

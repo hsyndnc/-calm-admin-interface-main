@@ -12,8 +12,8 @@ export interface Customer {
 }
 
 const fetchCustomers = async (): Promise<Customer[]> => {
-  const { data } = await apiClient.get<Customer[]>("customers");
-  return data;
+  const { data } = await apiClient.get("customers");
+  return Array.isArray(data) ? data : data.$values ?? data.data ?? [];
 };
 
 export const useCustomers = () => {

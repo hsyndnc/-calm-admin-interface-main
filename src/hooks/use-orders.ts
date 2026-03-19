@@ -13,8 +13,8 @@ export interface Order {
 }
 
 const fetchOrders = async (): Promise<Order[]> => {
-  const { data } = await apiClient.get<Order[]>("orders");
-  return data;
+  const { data } = await apiClient.get("orders");
+  return Array.isArray(data) ? data : data.$values ?? data.data ?? [];
 };
 
 export const useOrders = () => {
