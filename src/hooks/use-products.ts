@@ -11,7 +11,7 @@ export interface Product {
 }
 
 const fetchProducts = async (): Promise<Product[]> => {
-  const { data } = await apiClient.get("products");
+  const { data } = await apiClient.get("api/products");
   return Array.isArray(data) ? data : data.$values ?? data.data ?? [];
 };
 

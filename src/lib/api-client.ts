@@ -20,8 +20,14 @@ apiClient.interceptors.request.use((config) => {
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    console.error("API Error:", error.response?.data || error.message);
-    if (error.response?.status === 401) {
+    if (error.response?.data instanceof Blob) {
+      error.response.data.text().then((text: string) => {
+        console.error("API Error:", text);
+      });
+    } else {
+      console.error("API Error:", error.response?.data || error.message);
+    }
+    if (error.response?.status === 401 && !error.config.url?.includes("auth/login")) {
       localStorage.removeItem("token");
       window.location.href = "/";
     }

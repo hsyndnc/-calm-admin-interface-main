@@ -4,6 +4,7 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Bell } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import ChatBot from "@/components/ChatBot";
 
 const DashboardLayout = () => {
   const { user } = useAuth();
@@ -46,6 +47,7 @@ const DashboardLayout = () => {
           </main>
         </div>
       </div>
+      <ChatBot />
     </SidebarProvider>
   );
 };
