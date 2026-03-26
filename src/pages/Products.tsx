@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Pencil, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, Pencil, Trash2, ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -35,7 +35,6 @@ import {
   useCreateProduct,
   useUpdateProduct,
   useDeleteProduct,
-  deleteBrokenProducts,
   type Product,
   type ProductPayload,
 } from "@/hooks/use-products";
@@ -79,7 +78,6 @@ const Products = () => {
   const [form, setForm] = useState<ProductPayload>(emptyForm);
   const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
   const queryClient = useQueryClient();
-  const [repairing, setRepairing] = useState(false);
 
   const openCreate = () => {
     setEditingProduct(null);
@@ -146,9 +144,11 @@ const Products = () => {
     });
   };
 
-  const filtered = products.filter((p) =>
-    p.productName?.toLowerCase().includes(search.toLowerCase()),
-  );
+  const filtered = search.trim()
+    ? products.filter((p) =>
+        (p.productName ?? "").toLocaleLowerCase("tr-TR").includes(search.toLocaleLowerCase("tr-TR")),
+      )
+    : products;
 
   const isSaving = createMutation.isPending || updateMutation.isPending;
 
@@ -165,31 +165,23 @@ const Products = () => {
         </div>
         <div className="flex gap-2">
           {isAdmin && (
-            <Button
-              variant="outline"
-              disabled={repairing}
-              onClick={async () => {
-                setRepairing(true);
-                try {
-                  await deleteBrokenProducts();
-                  queryClient.invalidateQueries({ queryKey: ["products"] });
-                  toast({ title: "Bozuk ürünler düzeltildi!" });
-                } catch {
-                  toast({ title: "Düzeltme başarısız", variant: "destructive" });
-                }
-                setRepairing(false);
-              }}
-            >
-              {repairing ? "Siliniyor..." : "Bozuk Ürünleri Sil"}
-            </Button>
-          )}
-          {isAdmin && (
             <Button className="gap-2" onClick={openCreate}>
               <Plus className="w-4 h-4" />
               Add Product
             </Button>
           )}
         </div>
+      </div>
+
+      {/* Search */}
+      <div className="relative max-w-sm">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <Input
+          placeholder="Search products..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="pl-10 h-10 bg-card border-border/50"
+        />
       </div>
 
       <div className="bg-card rounded-xl shadow-card border border-border/50 overflow-hidden">

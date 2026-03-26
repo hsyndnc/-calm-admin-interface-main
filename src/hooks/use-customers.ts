@@ -7,6 +7,7 @@ export interface Customer {
   companyName: string;
   contactName: string;
   contactTitle: string;
+  email: string;
   phone: string;
   city: string;
   country: string;

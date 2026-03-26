@@ -105,14 +105,6 @@ export const useUpdateProduct = () => {
   });
 };
 
-export const deleteBrokenProducts = async () => {
-  const brokenIds = [1, 2, 3, 10];
-  const results = await Promise.allSettled(
-    brokenIds.map((id) => apiClient.delete(`api/products/${id}`))
-  );
-  return results;
-};
-
 export const useDeleteProduct = () => {
   const queryClient = useQueryClient();
   return useMutation({

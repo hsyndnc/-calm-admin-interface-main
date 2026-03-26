@@ -52,6 +52,7 @@ const emptyForm: CustomerPayload = {
   companyName: "",
   contactName: "",
   contactTitle: "",
+  email: "",
   phone: "",
   city: "",
   country: "",
@@ -91,6 +92,7 @@ const Customers = () => {
       companyName: customer.companyName,
       contactName: customer.contactName,
       contactTitle: customer.contactTitle,
+      email: customer.email,
       phone: customer.phone,
       city: customer.city,
       country: customer.country,
@@ -197,6 +199,9 @@ const Customers = () => {
                 Contact
               </TableHead>
               <TableHead className="text-xs uppercase tracking-wider text-muted-foreground font-medium">
+                Email
+              </TableHead>
+              <TableHead className="text-xs uppercase tracking-wider text-muted-foreground font-medium">
                 Location
               </TableHead>
               <TableHead className="text-xs uppercase tracking-wider text-muted-foreground font-medium">
@@ -211,7 +216,7 @@ const Customers = () => {
             {isLoading ? (
               <TableRow>
                 <TableCell
-                  colSpan={5}
+                  colSpan={6}
                   className="text-center py-12 text-muted-foreground animate-pulse"
                 >
                   Loading customers...
@@ -220,7 +225,7 @@ const Customers = () => {
             ) : isError ? (
               <TableRow>
                 <TableCell
-                  colSpan={5}
+                  colSpan={6}
                   className="text-center py-12 text-destructive font-medium"
                 >
                   Error loading customers. Please try again later.
@@ -249,6 +254,9 @@ const Customers = () => {
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
                     {customer.contactName}
+                  </TableCell>
+                  <TableCell className="text-sm text-muted-foreground">
+                    {customer.email || "-"}
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
                     {customer.city}, {customer.country}
@@ -283,7 +291,7 @@ const Customers = () => {
             {!isLoading && !isError && filtered.length === 0 && (
               <TableRow>
                 <TableCell
-                  colSpan={5}
+                  colSpan={6}
                   className="text-center py-12 text-muted-foreground"
                 >
                   No customers found.
@@ -403,15 +411,28 @@ const Customers = () => {
                 />
               </div>
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="phone">Phone</Label>
-              <Input
-                id="phone"
-                value={form.phone}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, phone: e.target.value }))
-                }
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={form.email}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, email: e.target.value }))
+                  }
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="phone">Phone</Label>
+                <Input
+                  id="phone"
+                  value={form.phone}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, phone: e.target.value }))
+                  }
+                />
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
