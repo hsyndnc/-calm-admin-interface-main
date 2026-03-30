@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,8 +23,23 @@ const Login = () => {
     setLoading(true);
     try {
       const { data } = await apiClient.post("auth/login", { email, password });
-      login(data.accessToken, data.fullName, data.email, data.roles);
-      navigate("/dashboard");
+      login(
+        data.accessToken,
+        data.fullName,
+        data.email,
+        data.roles,
+        data.customerId ?? null,
+        data.supplierId ?? null,
+      );
+
+      const roles: string[] = data.roles ?? [];
+      if (roles.includes("Admin")) {
+        navigate("/dashboard");
+      } else if (roles.includes("Supplier")) {
+        navigate("/supplier/dashboard");
+      } else {
+        navigate("/customer/products");
+      }
     } catch {
       setError("Geçersiz e-posta veya şifre.");
     } finally {
@@ -47,10 +62,10 @@ const Login = () => {
             <Lock className="w-6 h-6 text-primary-foreground" />
           </div>
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-            Welcome back
+            Hoş geldiniz
           </h1>
           <p className="text-muted-foreground mt-1 text-sm">
-            Sign in to your admin dashboard
+            Hesabınıza giriş yapın
           </p>
         </div>
 
@@ -62,14 +77,14 @@ const Login = () => {
                 htmlFor="email"
                 className="text-sm font-medium text-foreground"
               >
-                Email address
+                E-posta adresi
               </Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   id="email"
                   type="email"
-                  placeholder="name@company.com"
+                  placeholder="isim@sirket.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="pl-10 h-11 bg-secondary/50 border-border/50 focus:bg-card"
@@ -82,7 +97,7 @@ const Login = () => {
                 htmlFor="password"
                 className="text-sm font-medium text-foreground"
               >
-                Password
+                Şifre
               </Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -115,15 +130,9 @@ const Login = () => {
                   htmlFor="remember"
                   className="text-sm text-muted-foreground cursor-pointer"
                 >
-                  Remember me
+                  Beni hatırla
                 </Label>
               </div>
-              <button
-                type="button"
-                className="text-sm text-primary hover:underline font-medium"
-              >
-                Forgot password?
-              </button>
             </div>
 
             {error && (
@@ -134,9 +143,16 @@ const Login = () => {
               disabled={loading}
               className="w-full h-11 text-sm font-medium"
             >
-              {loading ? "Giriş yapılıyor..." : "Sign In"}
+              {loading ? "Giriş yapılıyor..." : "Giriş Yap"}
             </Button>
           </form>
+
+          <p className="text-center text-sm text-muted-foreground mt-6">
+            Hesabınız yok mu?{" "}
+            <Link to="/register" className="text-primary hover:underline font-medium">
+              Kayıt Ol
+            </Link>
+          </p>
         </div>
 
         <p className="text-center text-xs text-muted-foreground mt-6">

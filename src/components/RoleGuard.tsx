@@ -8,10 +8,10 @@ interface RoleGuardProps {
 
 const RoleGuard = ({ roles, children }: RoleGuardProps) => {
   const { user } = useAuth();
-  const userRoles = user?.roles || ["User"];
+  const userRoles = user?.roles || ["Customer"];
 
   if (!roles.some((r) => userRoles.includes(r))) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/unauthorized" replace />;
   }
 
   return <>{children}</>;
