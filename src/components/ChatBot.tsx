@@ -27,6 +27,7 @@ interface Message {
   fileUrl?: string;
   fileName?: string;
   tableData?: TableData;
+  sqlQuery?: string;
 }
 
 const WELCOME_MESSAGE: Message = {
@@ -101,6 +102,8 @@ const ChatBot = () => {
       const fileUrl = URL.createObjectURL(blob);
       const ext = format === "pdf" ? "pdf" : "xlsx";
       const fileName = `rapor.${ext}`;
+      const rawSql = response.headers?.["x-generated-sql"];
+      const sqlQuery = rawSql ? decodeURIComponent(rawSql) : undefined;
 
       let tableData: TableData | undefined;
       if (format === "excel") {
@@ -116,6 +119,7 @@ const ChatBot = () => {
         fileUrl,
         fileName,
         tableData,
+        sqlQuery,
       };
       setMessages((prev) => [...prev, botMsg]);
 
@@ -277,6 +281,16 @@ const ChatBot = () => {
                   }`}
                 >
                   <p>{msg.text}</p>
+                  {msg.sqlQuery && (
+                    <details className="mt-2">
+                      <summary className="text-xs font-medium cursor-pointer opacity-70 hover:opacity-100 transition-opacity">
+                        SQL Sorgusu
+                      </summary>
+                      <pre className="mt-1 p-2 bg-black/10 rounded-lg text-xs overflow-x-auto whitespace-pre-wrap break-all">
+                        {msg.sqlQuery}
+                      </pre>
+                    </details>
+                  )}
                   {(msg.fileUrl || msg.tableData) && (
                     <div className="flex flex-wrap gap-1.5 mt-2">
                       {msg.fileUrl && (
