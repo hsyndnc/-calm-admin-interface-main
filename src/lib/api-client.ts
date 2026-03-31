@@ -9,14 +9,20 @@ const apiClient = axios.create({
   },
 });
 
-// Request interceptor — attach Bearer token
+// Request interceptor — attach Bearer token (auth routes hariç)
 apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+  const url = config.url || "";
+  const isAuthRoute = url.includes("/auth/") || url.startsWith("auth/");
+  if (!isAuthRoute) {
+    const token = localStorage.getItem("token");
+    if (token) config.headers.Authorization = `Bearer ${token}`;
+  }
   return config;
 });
 
 // Response interceptor for error handling
+let isRedirectingTo401 = false;
+
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -27,10 +33,20 @@ apiClient.interceptors.response.use(
     } else {
       console.error("API Error:", error.response?.data || error.message);
     }
-    if (error.response?.status === 401 && !error.config.url?.includes("auth/login")) {
-      localStorage.removeItem("token");
-      window.location.href = "/";
+
+    const url = error.config?.url || "";
+    const isAuthRoute = url.includes("auth/login") || url.includes("auth/register");
+
+    if (error.response?.status === 401 && !isAuthRoute && !isRedirectingTo401) {
+      const token = localStorage.getItem("token");
+      if (token) {
+        isRedirectingTo401 = true;
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        window.location.href = "/";
+      }
     }
+
     return Promise.reject(error);
   }
 );

@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { ShoppingCart, Search } from "lucide-react";
 import { useCustomerProducts, useCategories } from "@/hooks/use-customer-products";
 import { useCart } from "@/hooks/use-cart";
+import CustomerLayout from "@/components/CustomerLayout";
 import { toast } from "sonner";
 import type { Product } from "@/hooks/use-products";
 
@@ -16,7 +17,7 @@ const CustomerProducts = () => {
 
   const { data, isLoading } = useCustomerProducts(page, 12, categoryId, search);
   const { data: categories } = useCategories();
-  const { addToCart, totalItems } = useCart();
+  const { addToCart } = useCart();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,25 +36,7 @@ const CustomerProducts = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="border-b border-border bg-card">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-xl font-semibold text-foreground">Ürünler</h1>
-          <Button variant="outline" asChild>
-            <a href="/customer/cart" className="flex items-center gap-2">
-              <ShoppingCart className="w-4 h-4" />
-              Sepet
-              {totalItems > 0 && (
-                <Badge className="ml-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs">
-                  {totalItems}
-                </Badge>
-              )}
-            </a>
-          </Button>
-        </div>
-      </div>
-
+    <CustomerLayout>
       <div className="max-w-7xl mx-auto px-4 py-6">
         {/* Arama + Kategori */}
         <div className="flex flex-col sm:flex-row gap-3 mb-6">
@@ -139,7 +122,6 @@ const CustomerProducts = () => {
               ))}
             </div>
 
-            {/* Pagination */}
             {data && data.totalPages > 1 && (
               <div className="flex items-center justify-center gap-2 mt-8">
                 <Button
@@ -166,7 +148,7 @@ const CustomerProducts = () => {
           </>
         )}
       </div>
-    </div>
+    </CustomerLayout>
   );
 };
 

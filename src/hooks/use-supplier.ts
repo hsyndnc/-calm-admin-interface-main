@@ -121,6 +121,7 @@ export const useSupplierOrders = (pageNumber = 1, pageSize = 10) => {
       return result;
     },
     placeholderData: keepPreviousData,
+    retry: false,
   });
 };
 

@@ -32,6 +32,7 @@ import {
   useDeleteSupplierProduct,
 } from "@/hooks/use-supplier";
 import type { Product, ProductPayload } from "@/hooks/use-products";
+import { useCategories } from "@/hooks/use-customer-products";
 import { toast } from "sonner";
 
 const schema = z.object({
@@ -41,7 +42,7 @@ const schema = z.object({
   unitsOnOrder: z.coerce.number().min(0),
   reorderLevel: z.coerce.number().min(0),
   quantityPerUnit: z.string().optional(),
-  categoryId: z.coerce.number().min(0),
+  categoryId: z.coerce.number().min(1, "Kategori seçimi zorunludur"),
   discontinued: z.boolean().default(false),
 });
 
@@ -55,6 +56,7 @@ const SupplierProducts = () => {
   const [editing, setEditing] = useState<Product | null>(null);
 
   const { data, isLoading } = useSupplierProducts(page, 10);
+  const { data: categories = [] } = useCategories();
   const { mutateAsync: createProduct, isPending: creating } = useCreateSupplierProduct();
   const { mutateAsync: updateProduct, isPending: updating } = useUpdateSupplierProduct();
   const { mutateAsync: deleteProduct } = useDeleteSupplierProduct();
@@ -166,7 +168,7 @@ const SupplierProducts = () => {
                   {(data?.items ?? []).map((product) => (
                     <tr key={product.productId} className="border-b border-border last:border-0 hover:bg-muted/30">
                       <td className="px-4 py-3 font-medium">{product.productName}</td>
-                      <td className="px-4 py-3 text-right">₺{product.unitPrice.toFixed(2)}</td>
+                      <td className="px-4 py-3 text-right">${product.unitPrice.toFixed(2)}</td>
                       <td className="px-4 py-3 text-right">{product.unitsInStock}</td>
                       <td className="px-4 py-3 text-center">
                         <Badge variant={product.discontinued ? "destructive" : "secondary"}>
@@ -223,7 +225,7 @@ const SupplierProducts = () => {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <Label>Fiyat (₺)</Label>
+                <Label>Fiyat ($)</Label>
                 <Input type="number" step="0.01" {...register("unitPrice")} />
                 {errors.unitPrice && <p className="text-xs text-destructive">{errors.unitPrice.message}</p>}
               </div>
@@ -247,8 +249,19 @@ const SupplierProducts = () => {
               <Input {...register("quantityPerUnit")} placeholder="Örn: 12 adet" />
             </div>
             <div className="space-y-1">
-              <Label>Kategori ID</Label>
-              <Input type="number" {...register("categoryId")} />
+              <Label>Kategori</Label>
+              <select
+                {...register("categoryId")}
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              >
+                <option value="">Kategori seçin</option>
+                {categories.map((cat) => (
+                  <option key={cat.categoryId} value={cat.categoryId}>
+                    {cat.categoryName}
+                  </option>
+                ))}
+              </select>
+              {errors.categoryId && <p className="text-xs text-destructive">{errors.categoryId.message}</p>}
             </div>
           </form>
           <DialogFooter>

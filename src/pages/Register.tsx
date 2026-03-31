@@ -40,7 +40,7 @@ const Register = () => {
   const onSubmit = async (values: FormValues) => {
     setLoading(true);
     try {
-      await apiClient.post("auth/register", values);
+      await apiClient.post("/auth/register", values);
       if (values.role === "Supplier") {
         toast.info("Kaydınız admin onayına gönderildi. Onaylandıktan sonra giriş yapabilirsiniz.");
         navigate("/");
