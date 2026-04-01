@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Package, ShoppingBag, AlertTriangle, LogOut } from "lucide-react";
 import { useSupplierStats } from "@/hooks/use-supplier";
 import { useAuth } from "@/contexts/AuthContext";
+import ChatBot from "@/components/ChatBot";
 
 const SupplierDashboard = () => {
   const navigate = useNavigate();
@@ -108,6 +109,7 @@ const SupplierDashboard = () => {
           </div>
         )}
       </div>
+      <ChatBot />
     </div>
   );
 };

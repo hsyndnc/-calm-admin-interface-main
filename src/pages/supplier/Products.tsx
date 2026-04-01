@@ -6,6 +6,7 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
@@ -34,6 +35,7 @@ import {
 import type { Product, ProductPayload } from "@/hooks/use-products";
 import { useCategories } from "@/hooks/use-customer-products";
 import { toast } from "sonner";
+import ChatBot from "@/components/ChatBot";
 
 const schema = z.object({
   productName: z.string().min(1, "Ürün adı zorunludur"),
@@ -65,6 +67,8 @@ const SupplierProducts = () => {
     register,
     handleSubmit,
     reset,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm<FormValues>({ resolver: zodResolver(schema) });
 
@@ -263,6 +267,15 @@ const SupplierProducts = () => {
               </select>
               {errors.categoryId && <p className="text-xs text-destructive">{errors.categoryId.message}</p>}
             </div>
+            <div className="flex items-center justify-between rounded-md border border-input px-3 py-2">
+              <Label className="cursor-pointer">
+                {watch("discontinued") ? "Pasif (satışta değil)" : "Aktif (satışta)"}
+              </Label>
+              <Switch
+                checked={!watch("discontinued")}
+                onCheckedChange={(checked) => setValue("discontinued", !checked)}
+              />
+            </div>
           </form>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>İptal</Button>
@@ -290,6 +303,7 @@ const SupplierProducts = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <ChatBot />
     </div>
   );
 };

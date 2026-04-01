@@ -81,7 +81,7 @@ export const useUpdateStock = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ id, stock }: { id: number; stock: number }) =>
-      apiClient.patch(`api/supplier/products/${id}/stock`, { stock }),
+      apiClient.patch(`api/supplier/products/${id}/stock`, { unitsInStock: stock }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["supplier-products"] });
     },
@@ -90,12 +90,22 @@ export const useUpdateStock = () => {
 
 // --- Supplier Orders ---
 
+export interface SupplierOrderDetail {
+  orderId: number;
+  productId: number;
+  productName?: string;
+  unitPrice: number;
+  quantity: number;
+  discount: number;
+}
+
 export interface SupplierOrder {
   orderId: number;
   orderDate: string;
   customerName?: string;
   totalAmount?: number;
   status?: string;
+  orderDetails?: SupplierOrderDetail[];
 }
 
 export const useSupplierOrders = (pageNumber = 1, pageSize = 10) => {
@@ -118,6 +128,13 @@ export const useSupplierOrders = (pageNumber = 1, pageSize = 10) => {
       }
       const result = data.$values ? { ...data, items: data.$values } : data;
       if (result.items?.$values) result.items = result.items.$values;
+      // orderDetails dizisini normalize et
+      if (Array.isArray(result.items)) {
+        result.items = result.items.map((order: Record<string, unknown>) => ({
+          ...order,
+          orderDetails: normalizeList<SupplierOrderDetail>(order.orderDetails),
+        }));
+      }
       return result;
     },
     placeholderData: keepPreviousData,
