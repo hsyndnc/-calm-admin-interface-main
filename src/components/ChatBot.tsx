@@ -7,12 +7,16 @@ import {
   User,
   FileDown,
   Table,
+  ShoppingCart,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCart } from "@/contexts/CartContext";
 import apiClient from "@/lib/api-client";
 import * as XLSX from "xlsx";
+import type { Product } from "@/hooks/use-products";
+import { toast } from "sonner";
 
 interface TableData {
   columns: string[];
@@ -28,6 +32,8 @@ interface Message {
   fileName?: string;
   tableData?: TableData;
   sqlQuery?: string;
+  products?: Product[];
+  cartEnabled?: boolean;
 }
 
 const WELCOME_MESSAGE: Message = {
@@ -39,9 +45,26 @@ const WELCOME_MESSAGE: Message = {
 
 type ExportFormat = "pdf" | "excel";
 
+const mapToProduct = (raw: Record<string, unknown>): Product => ({
+  productId: (raw.product_id as number) ?? 0,
+  productName: (raw.product_name as string) ?? "",
+  unitPrice: (raw.unit_price as number) ?? 0,
+  unitsInStock: raw.units_in_stock != null ? (raw.units_in_stock as number) : -1,
+  unitsOnOrder: (raw.units_on_order as number) ?? 0,
+  reorderLevel: (raw.reorder_level as number) ?? 0,
+  discontinued: (raw.discontinued as boolean) ?? false,
+  categoryId: raw.category_id as number | undefined,
+  supplierId: raw.supplier_id as number | undefined,
+  quantityPerUnit: raw.quantity_per_unit as string | undefined,
+});
+
 const ChatBot = () => {
   const { user } = useAuth();
+  const { addToCart } = useCart();
   const [isOpen, setIsOpen] = useState(false);
+
+  // Login/register gibi public sayfalarda gösterme
+  if (!user) return null;
   const [messages, setMessages] = useState<Message[]>([WELCOME_MESSAGE]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -93,54 +116,96 @@ const ChatBot = () => {
         "ai/query",
         { message: text, format },
         {
-          responseType: "blob",
+          responseType: "arraybuffer",
           headers: { "x-user": xUser },
         },
       );
 
-      const blob = new Blob([response.data]);
-      const fileUrl = URL.createObjectURL(blob);
-      const ext = format === "pdf" ? "pdf" : "xlsx";
-      const fileName = `rapor.${ext}`;
-      const rawSql = response.headers?.["x-generated-sql"];
-      const sqlQuery = rawSql ? decodeURIComponent(rawSql) : undefined;
+      const contentType = response.headers?.["content-type"] ?? "";
 
-      let tableData: TableData | undefined;
-      if (format === "excel") {
-        const parsed = await parseExcelBlob(blob);
-        if (parsed) tableData = parsed;
-      }
+      // Customer + products sorgusu: JSON döner (sepete ekleme destekli)
+      if (contentType.includes("application/json")) {
+        const jsonText = new TextDecoder().decode(response.data);
+        const jsonData = JSON.parse(jsonText);
 
-      const botMsg: Message = {
-        id: Date.now() + 1,
-        text: "Raporunuz hazir!",
-        sender: "bot",
-        timestamp: new Date(),
-        fileUrl,
-        fileName,
-        tableData,
-        sqlQuery,
-      };
-      setMessages((prev) => [...prev, botMsg]);
+        if (jsonData.cart_enabled) {
+          const products = (jsonData.data as Record<string, unknown>[]).map(mapToProduct);
+          const columns = jsonData.columns as string[];
+          const tableData: TableData = {
+            columns,
+            rows: jsonData.data as Record<string, unknown>[],
+          };
+          const botMsg: Message = {
+            id: Date.now() + 1,
+            text: `${products.length} urun bulundu. Sepete eklemek icin butona tiklayin.`,
+            sender: "bot",
+            timestamp: new Date(),
+            sqlQuery: jsonData.sql,
+            tableData,
+            products,
+            cartEnabled: true,
+          };
+          setMessages((prev) => [...prev, botMsg]);
+        } else if (jsonData.message) {
+          const botMsg: Message = {
+            id: Date.now() + 1,
+            text: jsonData.message,
+            sender: "bot",
+            timestamp: new Date(),
+            sqlQuery: jsonData.sql,
+          };
+          setMessages((prev) => [...prev, botMsg]);
+        }
+      } else {
+        // Diger sorgular: Excel/PDF blob akisi
+        const blob = new Blob([response.data]);
+        const fileUrl = URL.createObjectURL(blob);
+        const ext = format === "pdf" ? "pdf" : "xlsx";
+        const fileName = `rapor.${ext}`;
+        const rawSql = response.headers?.["x-generated-sql"];
+        const sqlQuery = rawSql ? decodeURIComponent(rawSql) : undefined;
 
-      if (tableData) {
-        setPreviewData(tableData);
+        let tableData: TableData | undefined;
+        if (format === "excel") {
+          const parsed = await parseExcelBlob(blob);
+          if (parsed) tableData = parsed;
+        }
+
+        const botMsg: Message = {
+          id: Date.now() + 1,
+          text: "Raporunuz hazir!",
+          sender: "bot",
+          timestamp: new Date(),
+          fileUrl,
+          fileName,
+          tableData,
+          sqlQuery,
+        };
+        setMessages((prev) => [...prev, botMsg]);
+
+        if (tableData) {
+          setPreviewData(tableData);
+        }
       }
     } catch (err: unknown) {
       let errorText = "Sorgu islenirken bir hata olustu.";
 
       if (err && typeof err === "object" && "response" in err) {
         const response = (
-          err as { response: { data: Blob; status: number } }
+          err as { response: { data: ArrayBuffer | Blob; status: number } }
         ).response;
-        if (response?.data instanceof Blob) {
-          try {
+        try {
+          if (response?.data instanceof ArrayBuffer) {
+            const text = new TextDecoder().decode(response.data);
+            const json = JSON.parse(text);
+            errorText = json.detail || errorText;
+          } else if (response?.data instanceof Blob) {
             const text = await response.data.text();
             const json = JSON.parse(text);
             errorText = json.detail || errorText;
-          } catch {
-            // blob parse basarisiz
           }
+        } catch {
+          // parse basarisiz
         }
       }
 
@@ -290,6 +355,42 @@ const ChatBot = () => {
                         {msg.sqlQuery}
                       </pre>
                     </details>
+                  )}
+                  {/* Sepete ekle: urun kartlari */}
+                  {msg.cartEnabled && msg.products && (
+                    <div className="mt-2 space-y-1.5 max-h-48 overflow-y-auto">
+                      {msg.products.map((p) => (
+                        <div
+                          key={p.productId}
+                          className="flex items-center justify-between gap-2 p-2 bg-black/5 rounded-lg"
+                        >
+                          <div className="min-w-0">
+                            <p className="text-xs font-medium truncate">
+                              {p.productName}
+                            </p>
+                            <p className="text-[10px] opacity-70">
+                              {p.unitPrice.toFixed(2)} ₺
+                              {p.unitsInStock < 0
+                                ? ""
+                                : p.unitsInStock > 0
+                                  ? ` · Stok: ${p.unitsInStock}`
+                                  : " · Stokta yok"}
+                            </p>
+                          </div>
+                          <button
+                            disabled={p.unitsInStock === 0}
+                            onClick={() => {
+                              addToCart(p, 1);
+                              toast.success(`${p.productName} sepete eklendi`);
+                            }}
+                            className="shrink-0 inline-flex items-center gap-1 px-2 py-1 bg-primary text-primary-foreground rounded-md text-[10px] font-medium hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
+                          >
+                            <ShoppingCart className="w-3 h-3" />
+                            Ekle
+                          </button>
+                        </div>
+                      ))}
+                    </div>
                   )}
                   {(msg.fileUrl || msg.tableData) && (
                     <div className="flex flex-wrap gap-1.5 mt-2">

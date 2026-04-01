@@ -35,7 +35,7 @@ import {
 import type { Product, ProductPayload } from "@/hooks/use-products";
 import { useCategories } from "@/hooks/use-customer-products";
 import { toast } from "sonner";
-import ChatBot from "@/components/ChatBot";
+
 
 const schema = z.object({
   productName: z.string().min(1, "Ürün adı zorunludur"),
@@ -303,7 +303,6 @@ const SupplierProducts = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      <ChatBot />
     </div>
   );
 };

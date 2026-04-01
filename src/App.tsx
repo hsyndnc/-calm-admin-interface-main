@@ -17,6 +17,7 @@ import Suppliers from "./pages/Suppliers";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import RoleGuard from "./components/RoleGuard";
+import ChatBot from "./components/ChatBot";
 
 // Customer pages
 import CustomerProducts from "./pages/customer/Products";
@@ -75,6 +76,7 @@ const App = () => (
 
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <ChatBot />
           </CartProvider>
         </AuthProvider>
       </BrowserRouter>

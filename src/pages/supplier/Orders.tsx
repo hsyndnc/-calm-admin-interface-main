@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Package, ChevronDown, ChevronRight } from "lucide-react";
 import { useSupplierOrders } from "@/hooks/use-supplier";
-import ChatBot from "@/components/ChatBot";
+
 
 const SupplierOrders = () => {
   const navigate = useNavigate();
@@ -150,7 +150,6 @@ const SupplierOrders = () => {
           </>
         )}
       </div>
-      <ChatBot />
     </div>
   );
 };

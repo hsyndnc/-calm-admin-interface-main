@@ -4,7 +4,6 @@ import { Badge } from "@/components/ui/badge";
 import { ShoppingCart, Package, ClipboardList, LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/hooks/use-cart";
-import ChatBot from "@/components/ChatBot";
 
 const CustomerLayout = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
@@ -81,7 +80,6 @@ const CustomerLayout = ({ children }: { children: React.ReactNode }) => {
       </header>
 
       <main>{children}</main>
-      <ChatBot />
     </div>
   );
 };
